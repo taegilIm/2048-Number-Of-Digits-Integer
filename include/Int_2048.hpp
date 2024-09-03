@@ -4,7 +4,13 @@
 
 #include "N2Array.hpp"
 
-class Int_2048
+#ifdef DEFINE_DLL
+#define DLL_API __declspec(dllexport)
+#else
+#define DLL_API __declspec(dllimport)
+#endif
+
+class DLL_API Int_2048
 {
 private:
     N2Array _value;

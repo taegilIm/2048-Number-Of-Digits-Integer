@@ -127,7 +127,7 @@ inline string N2Array::getString() const
 }
 
 // base operations
-void N2Array::operation(const N2Array &ary1, const N2Array &ary2, OP_Type type)
+void N2Array::operation(const N2Array &ary1, const N2Array &ary2, N2Array::OP_Type type)
 {
     string result;
     int carry = 0;
@@ -254,7 +254,7 @@ void N2Array::operation(const N2Array &ary1, const N2Array &ary2, OP_Type type)
     this->_data = result;
 }
 
-bool N2Array::compare(const N2Array &ary, OP_Type type) const
+bool N2Array::compare(const N2Array &ary, N2Array::OP_Type type) const
 {
     string ary1 = this->_data;
     string ary2 = ary._data;
@@ -353,21 +353,21 @@ bool N2Array::compare(const N2Array &ary, OP_Type type) const
 inline N2Array N2Array::operator+(const N2Array &ary) const
 {
     N2Array result;
-    result.operation(*this, ary, OP_Type::add);
+    result.operation(*this, ary, N2Array::OP_Type::add);
     return result;
 }
 
 inline N2Array N2Array::operator-(const N2Array &ary) const
 {
     N2Array result;
-    result.operation(*this, ary, OP_Type::subtract);
+    result.operation(*this, ary, N2Array::OP_Type::subtract);
     return result;
 }
 
 inline N2Array N2Array::operator*(const N2Array &ary) const
 {
     N2Array result;
-    result.operation(*this, ary, OP_Type::multiply);
+    result.operation(*this, ary, N2Array::OP_Type::multiply);
     return result;
 }
 
@@ -375,40 +375,40 @@ inline N2Array N2Array::operator*(const int &num) const
 {
     N2Array result = *this;
     N2Array oprand = num;
-    result.operation(*this, oprand, OP_Type::multiply);
+    result.operation(*this, oprand, N2Array::OP_Type::multiply);
     return result;
 }
 
 inline void N2Array::operator*=(const N2Array &ary)
 {
-    (*this).operation(*this, ary, OP_Type::multiply);
+    (*this).operation(*this, ary, N2Array::OP_Type::multiply);
 }
 
 inline bool N2Array::operator==(const N2Array &ary) const
 {
-    return this->compare(ary, OP_Type::equals);
+    return this->compare(ary, N2Array::OP_Type::equals);
 }
 
 inline bool N2Array::operator>(const N2Array &ary) const
 {
-    return this->compare(ary, OP_Type::bigger);
+    return this->compare(ary, N2Array::OP_Type::bigger);
 }
 
 inline bool N2Array::operator>=(const N2Array &ary) const
 {
     bool result = this->compare(ary, OP_Type::equals);
-    result = this->compare(ary, OP_Type::bigger);
+    result = this->compare(ary, N2Array::OP_Type::bigger);
     return result;
 }
 
 inline bool N2Array::operator<(const N2Array &ary) const
 {
-    return this->compare(ary, OP_Type::smaller);
+    return this->compare(ary, N2Array::OP_Type::smaller);
 }
 
 inline bool N2Array::operator<=(const N2Array &ary) const
 {
-    bool result = this->compare(ary, OP_Type::equals);
-    result = this->compare(ary, OP_Type::smaller);
+    bool result = this->compare(ary, N2Array::OP_Type::equals);
+    result = this->compare(ary, N2Array::OP_Type::smaller);
     return result;
 }

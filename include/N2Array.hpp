@@ -3,18 +3,25 @@
 #include <string>
 #include <utility>
 
-enum OP_Type
-{
-    add = 0,
-    subtract = 1,
-    multiply = 2,
-    bigger = 3,
-    smaller = 4,
-    equals = 5
-};
+#ifdef DEFINE_DLL
+#define DLL_API __declspec(dllexport)
+#else
+#define DLL_API __declspec(dllimport)
+#endif
 
-class N2Array
+class DLL_API N2Array
 {
+public:
+    enum OP_Type
+    {
+        add = 0,
+        subtract = 1,
+        multiply = 2,
+        bigger = 3,
+        smaller = 4,
+        equals = 5
+    };
+
 private:
     enum Flag
     {
