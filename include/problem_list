@@ -1,0 +1,6 @@
+N2Array:
+
+subtract -> if this < ary, this - ary is not accurate
+add -> -ary1 + ary2 but if ary1.length > ary2.length or ary1 > ary2 is not negative
+subtract -> -ary1 - -ary2 but if ary1.length > ary2.length or ary1 > ary2 -> result is not negative
+divide -> infinite loop

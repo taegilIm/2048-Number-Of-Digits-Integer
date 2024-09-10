@@ -9,6 +9,74 @@
 using namespace std;
 
 // static methods
+/** true -> from front
+ *  false -> from back
+ */
+string &N2Array::removeZeros(string &str, bool pos)
+{
+    if (pos)
+    {
+        while (str[0] == '0')
+            str.erase(0, 1);
+    }
+    else
+    {
+        while (str.back() == '0')
+            str.pop_back();
+    }
+
+    return str;
+}
+
+// constructors
+N2Array::N2Array() : _data("0"), _flag(zero), _len(1)
+{
+}
+
+N2Array::N2Array(const string &value)
+{
+    if (value.length() > MAXARRAY)
+        throw runtime_error("N2Array too big value exception : string must be lower than 65535 bytes");
+
+    if (value.empty())
+    {
+        _data = "0";
+        _flag = zero;
+        _len = 1;
+        return;
+    }
+    _data = value;
+    _len = value.length();
+    value[0] == '-' ? _flag = negative : _flag = positive;
+}
+
+N2Array::N2Array(const int &num)
+{
+    if (num == 0)
+    {
+        _data = "0";
+        _len = 1;
+        _flag = zero;
+        return;
+    }
+    _flag = num > 0 ? positive : negative;
+
+    pair<int *, int> value = N2Array::intToIntArray(num, _flag);
+    int *ary = value.first;
+    int len = value.second;
+
+    string data = _flag == positive ? N2Array::intArrayToString(ary, len, Flag::positive) : N2Array::intArrayToString(ary, len, Flag::negative);
+
+    _data = data;
+    _len = len;
+}
+
+// copy constructor
+N2Array::N2Array(const N2Array &ary) : _data(ary.getString()), _len(ary._len), _flag(ary._flag)
+{
+}
+
+// private methods
 string N2Array::intArrayToString(const int *ary, int &len, Flag type)
 {
     string result;
@@ -64,310 +132,390 @@ pair<int *, int> N2Array::intToIntArray(int num, Flag type)
     return make_pair(int_array, digits);
 }
 
-string &N2Array::removeZeros(string &str, bool pos)
-{
-    /** true -> from front
-     *  false -> from back
-     */
-    if (pos)
-    {
-        while (str[0] == '0')
-            str.erase(0, 1);
-    }
-    else
-    {
-        while (str.back() == '0')
-            str.pop_back();
-    }
-
-    return str;
-}
-
-// constructor
-N2Array::N2Array(const string &value) : _data(value)
-{
-    if (value.length() > 2048)
-    {
-        throw runtime_error("N2Array too big value exception : string must be lower than 2048 bytes");
-    }
-    _len = value.length();
-    value[0] == '-' ? _flag = negative : _flag = positive;
-}
-
-N2Array::N2Array(const int &num)
-{
-    if (num == 0)
-    {
-        _data = "0";
-        _len = 1;
-        _flag = zero;
-        return;
-    }
-    _flag = num > 0 ? positive : negative;
-
-    pair<int *, int> value = N2Array::intToIntArray(num, _flag);
-    int *ary = value.first;
-    int len = value.second;
-
-    string data = _flag == positive ? N2Array::intArrayToString(ary, len, Flag::positive) : N2Array::intArrayToString(ary, len, Flag::negative);
-
-    _data = data;
-    _len = len;
-}
-
-// copy constructor
-N2Array::N2Array(const N2Array &ary) : _data(ary.getString()), _len(ary._len), _flag(ary._flag)
-{
-}
-
-// public method
+// public methods
 inline string N2Array::getString() const
 {
     return this->_data;
 }
 
-// base operations
-void N2Array::operation(const N2Array &ary1, const N2Array &ary2, N2Array::OP_Type type)
+N2Array N2Array::power(const N2Array &ary)
 {
-    string result;
-    int carry = 0;
-    int borrow = 0;
+    if (ary._flag == zero)
+        return 1;
 
-    // set up the sign
-    bool negative = ary2 > ary1;
-    ary1 == ary2 ? this->_flag = Flag::zero : this->_flag;
-    negative ? this->_flag = Flag::negative : this->_flag = Flag::positive;
+    if (this->_len * ary._len > MAXARRAY)
+        throw runtime_error("N2Array : power operation too big number is created");
 
-    int i = ary1._len - 1;
-    int j = ary2._len - 1;
+    N2Array result = *this;
 
-    int *temp_multi;
-    int size;
-    int digits;
-    if (type == multiply)
+    int i = ary._len - 1;
+    while (i >= 0)
     {
-        if ((i + j) > 2048)
-        {
-            throw runtime_error("N2Array operation multiply has created too big number");
-        }
+        int num = ary._data[i] - '0';
+        for (int i = 0; i < num; i++)
+            result *= result;
 
-        temp_multi = new int[i + j + 2];
-        for (int k = 0; k < i + j + 2; k++)
-        {
-            temp_multi[k] = 0;
-        }
+        i--;
+    }
+    return result;
+}
 
-        size = i + j + 2;
-        digits = 0;
+// private methods
+// base operations
+void N2Array::operations(const N2Array &ary, OP_Type type)
+{
+    // for compare
+    N2Array n1 = *this;
+    N2Array n2 = ary;
+
+    if (this->_flag == negative)
+        n1._data.erase(0, 1);
+    if (ary._flag == negative)
+        n2._data.erase(0, 1);
+
+    // copy data
+    string ary1 = this->_data;
+    string ary2 = ary._data;
+
+    if (this->_flag == negative)
+        ary1.erase(0, 1);
+    if (ary._flag == negative)
+        ary2.erase(0, 1);
+
+    string result;
+    switch (type)
+    {
+    case sum:
+        result = add(ary1, ary2);
+        break;
+    case sub:
+        result = subtract(ary1, ary2);
+        break;
+    case mul:
+        result = multiply(ary1, ary2);
+        break;
+    case div:
+        result = divide(ary1, ary2).first;
+        break;
+    case mod:
+        if (this->_flag == Flag::negative || ary._flag == Flag::negative)
+            throw runtime_error("N2Array : modulus operator can only both numbers are positive");
+        result = modulus(ary1, ary2);
+        break;
+
+    default:
+        break;
     }
 
-    string str1 = ary1.getString();
-    string str2 = ary2.getString();
+    // last process
+    removeZeros(result, false);
+    setFlag(result, n1 > n2, this->_flag, ary._flag, type);
+    std::reverse(result.begin(), result.end());
 
+    // overflow
+    if (result.length() > MAXARRAY)
+        throw runtime_error("N2Array : operation create too big number (over 65535 digits)");
+
+    *this = result;
+}
+
+// private static method
+// operation method
+void N2Array::setFlag(string &value, bool isBig, Flag f1, Flag f2, OP_Type type)
+{
+    if (value.empty())
+        return;
+
+    switch (type)
+    {
+    case sum:
+        if (f1 == f2)
+        {
+            if (f1 == negative)
+                value.push_back('-');
+        }
+        else
+        {
+            if (isBig)
+            {
+                if (f1 == negative)
+                    value.push_back('-');
+            }
+            else
+            {
+                if (f1 == positive)
+                    value.push_back('-');
+            }
+        }
+        break;
+
+    case sub:
+        if (f1 == f2)
+        {
+            if (isBig)
+            {
+                if (f1 == negative)
+                    value.push_back('-');
+            }
+            else
+            {
+                if (f1 == positive)
+                    value.push_back('-');
+            }
+        }
+        else
+        {
+            if (f1 == negative)
+                value.push_back('-');
+        }
+        break;
+    case mul:
+        if (f1 != f2)
+            value.push_back('-');
+        break;
+
+    case div:
+        if (f1 != f2)
+            value.push_back('-');
+        break;
+    default:
+        break;
+    }
+}
+
+string N2Array::add(const string &str1, const string &str2)
+{
+    string result;
+
+    int i = str1.length() - 1;
+    int j = str2.length() - 1;
+
+    int sum;
+    int carry = 0;
     while (i >= 0 || j >= 0)
     {
         int num1 = i >= 0 ? str1[i] - '0' : 0;
         int num2 = j >= 0 ? str2[j] - '0' : 0;
 
-        int sum;
-        // operation type
-        switch (type)
-        {
-        case add:
-            sum = num1 + num2 + carry;
-            carry = sum / 10;
-            sum != 0 ? result.push_back(sum % 10 + '0') : result.push_back('0');
-            break;
+        sum = num1 + num2 + carry;
+        carry = sum / 10;
+        sum != 0 ? result.push_back(sum % 10 + '0') : result.push_back('0');
 
-        case subtract:
-            // n1 - n2 or n2 - n1
-            negative ? sum = num2 - num1 - borrow : sum = num1 - num2 - borrow;
-            if (sum >= 0)
-                borrow = 0;
-            else
-            {
-                sum += 10;
-                borrow = 1;
-            }
-
-            sum != 0 ? result.push_back(sum % 10 + '0') : result.push_back('0');
-            break;
-
-        case multiply:
-            int index = 0;
-            if (num2 != 0)
-            {
-                /**
-                 * 12345 * 2 :
-                 * 5 * 2 -> 0
-                 * 4 * 2 -> 8 + 1
-                 * 3 * 2 -> 6
-                 * 2 * 2 -> 4
-                 * 1 * 2 -> 2
-                 */
-                for (int k = ary1._len - 1; k >= 0; k--)
-                {
-                    num1 = ary1._data[k] - '0';
-                    sum = num1 * num2 + carry;
-                    carry = sum / 10;
-
-                    temp_multi[index + digits] += sum % 10;
-                    index++;
-                }
-            }
-            digits++;
-            break;
-        }
-
-        i--;
-        j--;
+        i--, j--;
     }
-
-    if (type == subtract)
-    {
-        if (negative)
-            result.push_back('-');
-    }
-    else if (type == multiply)
-    {
-        // sum of all digits
-        int mul_carry = 0;
-        for (int k = 0; k <= size; k++)
-        {
-            int mul_sum = temp_multi[k] + mul_carry;
-            mul_carry = mul_sum / 10;
-            temp_multi[k] = mul_sum % 10;
-        }
-
-        // - * - or + * - or + * +
-        if (ary1._flag == ary2._flag)
-            result = N2Array::intArrayToString(temp_multi, size, Flag::positive);
-        else
-            result = N2Array::intArrayToString(temp_multi, size, Flag::negative);
-
-        N2Array::removeZeros(result, false);
-        delete[] temp_multi;
-    }
-
-    std::reverse(result.begin(), result.end());
-
-    this->_data = result;
+    return result;
 }
 
-bool N2Array::compare(const N2Array &ary, N2Array::OP_Type type) const
+string N2Array::subtract(const string &str1, const string &str2)
 {
-    string ary1 = this->_data;
-    string ary2 = ary._data;
+    string result;
 
-    if (ary1[0] == '-')
-        ary1.erase(0, 1);
-    if (ary2[0] == '-')
-        ary2.erase(0, 1);
+    int i = str1.length() - 1;
+    int j = str2.length() - 1;
 
-    int len1 = this->_len - 1;
-    int len2 = ary._len - 1;
-
-    int sign;
-    /** +, +: 0
-     *  +, -: 1
-     *  -, +: 2
-     *  -, -: 3
-     *  +, 0: 4
-     *  -, 0: 5
-     *  0, +: 6
-     *  0, -: 7
-     *  0, 0: 8
-     */
-    if (this->_flag == ary._flag)
+    int sub;
+    int borrow = 0;
+    while (i >= 0 || j >= 0)
     {
-        if (this->_flag == positive)
-            sign = 0;
-        else if (this->_flag == negative)
-            sign = 3;
+        int num1 = i >= 0 ? str1[i] - '0' : 0;
+        int num2 = j >= 0 ? str2[j] - '0' : 0;
+
+        sub = num1 - num2 - borrow;
+        if ((num1 - borrow) >= num2)
+            borrow = 0;
         else
-            sign = 8;
-    }
-    else
-    {
-        if (this->_flag == positive)
-            ary._flag == negative ? sign = 1 : sign = 4;
-        else if (this->_flag == negative)
-            ary._flag == positive ? sign = 2 : sign = 5;
-        else
-            ary._flag == positive ? sign = 6 : sign = 7;
-    }
-
-    bool result;
-    bool is_equal;
-    while (len1 >= 0 || len2 >= 0)
-    {
-        int num1 = len1 >= 0 ? ary1[len1] - '0' : 0;
-        int num2 = len2 >= 0 ? ary2[len2] - '0' : 0;
-
-        switch (sign)
         {
-        case 1:
-        case 4:
-        case 7:
-            is_equal = false;
-            result = true;
-            break;
-        case 2:
-        case 5:
-        case 6:
-            is_equal = false;
-            result = false;
-            break;
-        case 0:
-        case 3:
-        case 8:
-            num1 == num2 ? is_equal = true : is_equal = false;
-            if (sign == 3)
-                num1 < num2 ? result = true : result = false;
-            else
-                num1 > num2 ? result = true : result = false;
-            break;
+            sub += 10;
+            borrow = 1;
+        }
+        sub != 0 ? result.push_back(sub % 10 + '0') : result.push_back('0');
+
+        i--, j--;
+    }
+    return result;
+}
+
+string N2Array::multiply(const string &str1, const string &str2)
+{
+    int i = str1.length() - 1;
+    int j = str2.length() - 1;
+
+    // initializing
+    string result;
+    for (int k = 0; k < i + j + 1; k++)
+        result.push_back('0');
+
+    int sum;
+    int carry = 0;
+    int digits = 0;
+    while (j >= 0)
+    {
+        int num2 = str2[j] - '0';
+        if (num2 != 0)
+        {
+            int index = 0;
+            for (int k = i; k >= 0; k--)
+            {
+                int num1 = str1[k] - '0';
+                sum = (result[index + digits] - '0') + num1 * num2 + carry;
+                carry = sum / 10;
+
+                result[index + digits] = sum != 0 ? (sum % 10) + '0' : '0';
+                index++;
+            }
+        }
+        digits++;
+        j--;
+    }
+    return result;
+}
+
+pair<string, string> N2Array::divide(const string &str1, string str2)
+{
+    // a / 0
+    if (str2[0] == '0')
+        throw runtime_error("N2Array : cannot divide to 0");
+
+    if (str1[0] == '0')
+        return make_pair("0", "0");
+
+    // str1 == str2
+    if (compareString(str1, str2, positive, positive).second)
+        return make_pair("1", "0");
+
+    string result = "0";
+    int len = str1.length() - str2.length();
+    for (int i = 0; i < len; i++)
+        result.push_back('0');
+
+    string remain;
+    string temp = str1;
+
+    // set digits
+    int size = str2.length();
+    while (temp.length() - 1 >= str2.length())
+        str2.push_back('0');
+
+    int digits = str2.length() - size;
+    int index = 0;
+    while (index < size)
+    {
+        if (temp[index] - '0' < str2[index] - '0' && digits > 0)
+        {
+            str2.pop_back();
+            digits--;
         }
 
+        while (compareString(temp, str2, positive, positive).first || compareString(temp, str2, positive, positive).second)
+        {
+            int num = (result[index] - '0') + 1;
+            num != 0 ? result[index] = num + '0' : result[index] = '0';
+            temp = subtract(temp, str2);
+            std::reverse(temp.begin(), temp.end());
+        }
+        index++;
+    }
+    remain = temp;
+    std::reverse(remain.begin(), remain.end());
+    return make_pair(result, remain);
+}
+
+string N2Array::modulus(const string &str1, const string &str2)
+{
+    // str1 == str2
+    if (compareString(str1, str2, positive, positive).second)
+        return "0";
+    // str1 < str2
+    if (!compareString(str1, str2, positive, positive).first)
+        return str1;
+
+    string remain = divide(str1, str2).second;
+    return remain;
+}
+
+// compare operation
+bool N2Array::compare(const N2Array &ary, OP_Type type) const
+{
+    string str1 = this->_data;
+    string str2 = ary._data;
+
+    if (this->_flag == negative)
+        str1.erase(0, 1);
+    if (ary._flag == negative)
+        str2.erase(0, 1);
+
+    pair<bool, bool> result = compareString(str1, str2, this->_flag, ary._flag);
+
+    if (type == bigger)
+        return result.first;
+    else
+        return result.second;
+}
+
+pair<bool, bool> N2Array::compareString(const string &str1, const string &str2, Flag f1, Flag f2)
+{
+    int len1 = str1.length() - 1;
+    int len2 = str2.length() - 1;
+
+    bool result = false;
+    bool isEqual = true;
+
+    while (len1 >= 0 || len2 >= 0)
+    {
+        int num1 = len1 >= 0 ? str1[len1] - '0' : 0;
+        int num2 = len2 >= 0 ? str2[len2] - '0' : 0;
+
+        if (num1 > num2)
+        {
+            isEqual = false;
+            if (f1 == negative)
+                result = false;
+            else
+                result = true;
+        }
+        else if (num1 == num2)
+        {
+            if (f1 == f2)
+            {
+                if (isEqual)
+                    isEqual = true;
+            }
+            else
+                isEqual = false;
+        }
+        else
+        {
+            isEqual = false;
+            if (f1 == negative)
+                result = true;
+            else
+                result = false;
+        }
         len1--;
         len2--;
     }
-
-    switch (type)
-    {
-    case bigger:
-        return result;
-
-    case smaller:
-        return !result;
-
-    case equals:
-        return is_equal;
-
-    default:
-        return false;
-    }
+    return make_pair(result, isEqual);
 }
 
 // operators
 inline N2Array N2Array::operator+(const N2Array &ary) const
 {
-    N2Array result;
-    result.operation(*this, ary, N2Array::OP_Type::add);
+    N2Array result = *this;
+    result.operations(ary, OP_Type::sum);
     return result;
 }
 
 inline N2Array N2Array::operator-(const N2Array &ary) const
 {
-    N2Array result;
-    result.operation(*this, ary, N2Array::OP_Type::subtract);
+    N2Array result = *this;
+    result.operations(ary, OP_Type::sub);
     return result;
 }
 
 inline N2Array N2Array::operator*(const N2Array &ary) const
 {
-    N2Array result;
-    result.operation(*this, ary, N2Array::OP_Type::multiply);
+    N2Array result = *this;
+    result.operations(ary, OP_Type::mul);
     return result;
 }
 
@@ -375,18 +523,37 @@ inline N2Array N2Array::operator*(const int &num) const
 {
     N2Array result = *this;
     N2Array oprand = num;
-    result.operation(*this, oprand, N2Array::OP_Type::multiply);
+    result.operations(oprand, OP_Type::mul);
     return result;
 }
 
 inline void N2Array::operator*=(const N2Array &ary)
 {
-    (*this).operation(*this, ary, N2Array::OP_Type::multiply);
+    (*this).operations(*this, OP_Type::mul);
+}
+
+inline N2Array N2Array::operator/(const N2Array &ary) const
+{
+    N2Array result = *this;
+    result.operations(ary, OP_Type::div);
+    return result;
+}
+
+inline N2Array N2Array::operator%(const N2Array &ary) const
+{
+    N2Array result = *this;
+    result.operations(ary, mod);
+    return result;
 }
 
 inline bool N2Array::operator==(const N2Array &ary) const
 {
     return this->compare(ary, N2Array::OP_Type::equals);
+}
+
+inline bool N2Array::operator!=(const N2Array &ary) const
+{
+    return !this->compare(ary, N2Array::OP_Type::equals);
 }
 
 inline bool N2Array::operator>(const N2Array &ary) const
@@ -396,19 +563,19 @@ inline bool N2Array::operator>(const N2Array &ary) const
 
 inline bool N2Array::operator>=(const N2Array &ary) const
 {
-    bool result = this->compare(ary, OP_Type::equals);
-    result = this->compare(ary, N2Array::OP_Type::bigger);
-    return result;
+    bool result1 = this->compare(ary, OP_Type::equals);
+    bool result2 = this->compare(ary, N2Array::OP_Type::bigger);
+    return result1 || result2;
 }
 
 inline bool N2Array::operator<(const N2Array &ary) const
 {
-    return this->compare(ary, N2Array::OP_Type::smaller);
+    return !this->compare(ary, N2Array::OP_Type::bigger);
 }
 
 inline bool N2Array::operator<=(const N2Array &ary) const
 {
-    bool result = this->compare(ary, N2Array::OP_Type::equals);
-    result = this->compare(ary, N2Array::OP_Type::smaller);
-    return result;
+    bool result1 = this->compare(ary, N2Array::OP_Type::equals);
+    bool result2 = this->compare(ary, N2Array::OP_Type::bigger);
+    return result1 || !result2;
 }
