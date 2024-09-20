@@ -22,9 +22,9 @@ public:
     static Int_inf gcd(const Int_inf &, const Int_inf &);
 
     // constructors
-    Int_inf() : _value(0) {};
+    Int_inf();
     Int_inf(const char *);
-    Int_inf(const std::string &);
+    Int_inf(std::string &);
     Int_inf(const int);
     Int_inf(const N2Array &);
 
@@ -36,7 +36,7 @@ public:
 
 private:
     // isPrime operation
-    Int_inf ML_operation(Int_inf, Int_inf) const;
+    Int_inf powOperation(Int_inf, Int_inf) const;
 
 public:
     // public methods
@@ -45,7 +45,6 @@ public:
 
     // for test
     void print() const;
-    N2Array &getArray();
 
     // operators
     Int_inf operator+(const Int_inf &) const;
@@ -62,4 +61,8 @@ public:
     bool operator>=(const Int_inf &) const;
     bool operator<(const Int_inf &) const;
     bool operator<=(const Int_inf &) const;
+
+    // iostream operator
+    friend std::ostream &operator<<(std::ostream &, const Int_inf &);
+    friend std::istream &operator>>(std::istream &, Int_inf &);
 };

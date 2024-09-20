@@ -38,14 +38,19 @@ private:
     Flag _flag;
     int _len;
 
+    // private static method
+    static bool isNumber(const std::string &);
+    static std::pair<int *, int> intToIntArray(int, Flag);
+    static std::string intArrayToString(const int *, int &, Flag);
+
 public:
     // static method
     static std::string &removeZeros(std::string &, bool);
 
     // constructors
     N2Array();
-    N2Array(const std::string &);
-    N2Array(const int &);
+    N2Array(std::string &);
+    N2Array(const int);
 
     // copy constructor
     N2Array(const N2Array &);
@@ -59,16 +64,13 @@ public:
 
 private:
     // private method
-    std::pair<int *, int> intToIntArray(int, Flag);
-    std::string intArrayToString(const int *, int &, Flag);
-
     // base operations
     void operations(const N2Array &, OP_Type);
     // operation method (static)
     static void setFlag(std::string &, bool, Flag, Flag, OP_Type);
     static std::string add(const std::string &, const std::string &);
     static std::string subtract(const std::string &, const std::string &);
-    static std::string multiply(const std::string &, const std::string &);
+    static std::string product(const std::string &, const std::string &);
     static std::pair<std::string, std::string> divide(const std::string &, std::string);
     static std::string modulus(const std::string &, const std::string &);
 
@@ -92,4 +94,8 @@ public:
     bool operator>=(const N2Array &) const;
     bool operator<(const N2Array &) const;
     bool operator<=(const N2Array &) const;
+
+    // iostream operator
+    friend std::ostream &operator<<(std::ostream &, const N2Array &);
+    friend std::istream &operator>>(const std::istream &, N2Array &);
 };
