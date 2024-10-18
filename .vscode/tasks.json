@@ -6,12 +6,18 @@
       "command": "C:/mingw64/bin/g++.exe",
       "args": [
         "-fdiagnostics-color=always",
-        "-D",
-        "DEFINE_DLL",
         "-g",
         "${file}",
+        "-D",
+        "DEFINE_DLL",
+        "-I",
+        "${workspaceFolder}\\include",
         "-o",
-        "${fileDirname}\\${fileBasenameNoExtension}.exe"
+        "${fileDirname}\\${fileBasenameNoExtension}.exe",
+        "-L",
+        "${workspaceFolder}\\lib",
+        "-l",
+        "ustring"
       ],
       "options": {
         "cwd": "C:/mingw64/bin"
