@@ -11,7 +11,7 @@
         "-D",
         "DEFINE_DLL",
         "-I",
-        "${workspaceFolder}\\include\\ustring",
+        "${workspaceFolder}\\include",
         "-o",
         "${fileDirname}\\${fileBasenameNoExtension}.exe",
         "-L",
